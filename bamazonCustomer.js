@@ -1,12 +1,12 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var Table = require('cli-table2');
-
+/* 
 var table = new Table({
     head: ['id', 'product_name', 'department', 'price', 'stock_quantity']
     , colWidths: [10, 35, 15, 10, 17]
 });
-
+ */
 
 // create the connection information for the sql database
 var connection = mysql.createConnection({
@@ -52,10 +52,15 @@ connection.connect(function (err) {
     // run the start function after the connection is made to prompt the user
     console.log("connected as id " + connection.threadId + "\n");
     displayProducts();
+    //orderItem();
 });
 };
 
 function displayProducts() {
+    var table = new Table({
+        head: ['id', 'product_name', 'department', 'price', 'stock_quantity']
+        , colWidths: [10, 35, 15, 10, 17]
+    });
     // query the database for all items being on sale
     connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
@@ -118,7 +123,8 @@ function orderItem() {
                         console.log("Successfully purchased " + answer.number+ " " + product + " items");
                         //connection.end();
                         updateProduct(itemNum, numItems-userNum);
-                        displayProducts();
+                        //displayProducts();
+                        //orderItem();
                      
                     }
                     else {
@@ -126,8 +132,9 @@ function orderItem() {
                         //display the table of items on sale...
                         //displayProducts();
                         //connection.end();
-                        console.log(table.toString());
-                        orderItem();
+                        //console.log(table.toString());
+                        displayProducts();
+                        //orderItem();
 
                     }
                     
