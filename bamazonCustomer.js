@@ -23,6 +23,26 @@ var connection = mysql.createConnection({
     database: "bamazon"
 });
 
+/* var stdin = process.stdin;
+stdin.setRawMode(true);
+stdin.resume();
+stdin.setEncoding('utf8');
+stdin.on('data', function(key){
+    console.log(toUnicode(key)); //Gives you the unicode of the pressed key
+    if (key == '\u0003') { process.exit(); }    // ctrl-c
+}); */
+
+/* const readline = require("readline");
+readline.emitKeypressEvents(process.stdin);
+process.stdin.setRawMode(true);
+process.stdin.on('keyup', (str, key) => {
+    if(key.name === "Q" || key.name === "q") {
+        console.log("q was pressed");
+        process.exit();
+    }
+});  */
+
+
 startConnect();
 
 // connect to the mysql server and sql database
@@ -92,11 +112,14 @@ function orderItem() {
                     //check if there are enough items to sell to a customer 
                     var numItems = results[0].stock_quantity;
                     var product= results[0].product_name;
-                    if(parseInt(answer.number) <= numItems) {
+                    var itemNum = parseInt(answer.item);
+                    var userNum = parseInt(answer.number);
+                    if(userNum <= numItems) {
                         console.log("Successfully purchased " + answer.number+ " " + product + " items");
                         //connection.end();
-                        //startConnect();
-                        //console.log(table.toString());
+                        updateProduct(itemNum, numItems-userNum);
+                        displayProducts();
+                     
                     }
                     else {
                         console.log("Sorry! Insufficient quantity in stock! Please change the order. ");
@@ -112,6 +135,28 @@ function orderItem() {
         });   
 
 };
+
+// function to handle 
+function updateProduct(itemId, numberLeft) {
+
+    connection.query(
+        "UPDATE products SET ? WHERE ?",
+        [
+          {
+            stock_quantity: numberLeft
+          },
+          {
+            item_id: itemId
+          }
+        ],
+        function(error) {
+          if (error) throw err;
+          console.log("The product table was updated successfully!");
+          displayProducts();
+        }
+      );
+
+}
 
 
     // function which prompts the user for what action they should take
