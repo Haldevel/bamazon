@@ -152,6 +152,9 @@ function updateProduct(itemId, numberLeft) {
 }
 
 
+/* module.exports = startConnect();
+module.exports = connection; */
+
 
 
 
