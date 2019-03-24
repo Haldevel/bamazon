@@ -20,11 +20,10 @@ var connection = mysql.createConnection({
 });
 
 var departArray = [];
+//call the function to populate the global variable departArray and to display the menu
 getDepartments();
 
-//displayMenu();
-
-
+//function to display menu options of things to do
 function displayMenu() {
     inquirer
         .prompt([
@@ -55,9 +54,7 @@ function displayMenu() {
                 connection.end();
                 process.exit();
             }
-
-        })
-
+        });
 }
 
 //function to display the content of the products table for manager
@@ -76,12 +73,10 @@ function displayForManager() {
         }
         console.log(table.toString());
         displayMenu();
-
     });
-
 };
 
-
+//function to display products which quantity is less than 5
 function viewLowInventory() {
     var table = new Table({
         head: ['id', 'product_name', 'department', 'price', 'stock_quantity']
@@ -100,6 +95,8 @@ function viewLowInventory() {
     });
 }
 
+
+//function to add quantity for products that already exist in the inventory
 function addToInventory() {
     inquirer
         .prompt([ //get answers from a user manager
@@ -131,7 +128,7 @@ function addToInventory() {
                     var quant = res[0].stock_quantity;
                     //the new quantity will be the stored quantity plus the number entered by a manager
                     var newQuantity = quant + parseInt(answer.number);
-                    //update the corresponding record now
+                    //update the corresponding product's quantity
                     connection.query("UPDATE products SET ? WHERE ?",
                         [
                             {
@@ -144,20 +141,19 @@ function addToInventory() {
                         ,
                         function (err, results) {
                             if (err) throw err;
-                            console.log(+ answer.number + " items with id = " + answer.item + " are added to the inventory.")
+                            var nmr = (answer.number == '1') ? "item" : "items";
+                            console.log(nmr + " with id = " + answer.item + " are added to the inventory.");
                             displayForManager();
                         }
                     );
-
                 });
-
         });
 }
 
-
+//function to add a new product to the inventory
 function addNewProduct() {
     inquirer
-        .prompt([ //get answers from a user manager
+        .prompt([ //get answers from a user manager to add new product
             {
                 name: "product",
                 type: "input",
@@ -194,11 +190,9 @@ function addNewProduct() {
 
         ])
         .then(function (answer) {
-            //select the corresponding item to know how many items of this sort are stored
-            console.log(answer.price + " " + answer.number);
+            //run insert statement to add a new item to the products table
             connection.query("INSERT INTO products SET ?",
                 {
-
                     product_name: answer.product,
                     department_name: answer.department,
                     price: answer.price,
@@ -210,24 +204,17 @@ function addNewProduct() {
                     displayForManager();
                 }
             );
-
         });
-
 };
 
-
+//function to select all departments, populate global vriable departArray with them and to call displayMenu function
 function getDepartments() {
-    console.log("1");
+
     connection.query("SELECT DISTINCT department_name FROM products", function (err, results) {
-        console.log("1b");
         if (err) throw err;
-        console.log("2");
         for (var i = 0; i < results.length; i++) {
             departArray.push(results[i].department_name);
         }
-        console.log(departArray);
-        //return departArray;
         displayMenu();
-
     });
 };
