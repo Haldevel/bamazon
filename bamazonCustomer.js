@@ -1,12 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var Table = require('cli-table2');
-/* 
-var table = new Table({
-    head: ['id', 'product_name', 'department', 'price', 'stock_quantity']
-    , colWidths: [10, 35, 15, 10, 17]
-});
- */
+
 
 // create the connection information for the sql database
 var connection = mysql.createConnection({
@@ -47,15 +42,16 @@ startConnect();
 
 // connect to the mysql server and sql database
 function startConnect() {
-connection.connect(function (err) {
-    if (err) throw err;
-    // run the start function after the connection is made to prompt the user
-    console.log("connected as id " + connection.threadId + "\n");
-    displayProducts();
-    //orderItem();
-});
+    connection.connect(function (err) {
+        if (err) throw err;
+        // run the start function after the connection is made to prompt the user
+        console.log("connected as id " + connection.threadId + "\n");
+        displayProducts();
+    });
 };
 
+
+//function to select the products from the db and display the results using cli-table2 object
 function displayProducts() {
     var table = new Table({
         head: ['id', 'product_name', 'department', 'price', 'stock_quantity']
@@ -67,18 +63,15 @@ function displayProducts() {
         for (var i = 0; i < res.length; i++) {
             //we will use cli-table2 package's table.push functionality to have a nice display of the database columns
             table.push([res[i].item_id, res[i].product_name, res[i].department_name, res[i].price, res[i].stock_quantity]);
-            //console.log(res[i].item_id + "   " + res[i].product_name + "   " + res[i].department_name + "    " + res[i].price + "    " + res[i].stock_quantity  );
         }
         console.log(table.toString());
         //the function inputs user's answers about the item to buy and ins quantity, and selects the corrsponding data from the db
         orderItem();
-
-        //prompt a user 
     });
 
 };
 
-// function to handle 
+// function to prompt a user to input info about purchase and to check if there are enough items to purchase in stock
 function orderItem() {
     // prompt for info about the item the user wants to purchase and the number of items
     inquirer
@@ -112,86 +105,54 @@ function orderItem() {
                 function (err, results) {
                     if (err) throw err;
                     //if the querying was successfull
-                    console.log("The info about the item: " + results[0].product_name + " " + results[0].price + " " + results[0].stock_quantity);
-                    //connection.end();
+                    //console.log("The info about the item: " + results[0].product_name + " " + results[0].price + " " + results[0].stock_quantity);                
                     //check if there are enough items to sell to a customer 
                     var numItems = results[0].stock_quantity;
-                    var product= results[0].product_name;
+                    var product = results[0].product_name;
                     var itemNum = parseInt(answer.item);
                     var userNum = parseInt(answer.number);
-                    if(userNum <= numItems) {
-                        console.log("Successfully purchased " + answer.number+ " " + product + " items");
+                    if (userNum <= numItems) {
+                        console.log("Successfully purchased " + answer.number + " " + product + " items");
                         //connection.end();
-                        updateProduct(itemNum, numItems-userNum);
-                        //displayProducts();
-                        //orderItem();
-                     
+                        updateProduct(itemNum, numItems - userNum);
+
                     }
                     else {
                         console.log("Sorry! Insufficient quantity in stock! Please change the order. ");
                         //display the table of items on sale...
-                        //displayProducts();
-                        //connection.end();
-                        //console.log(table.toString());
                         displayProducts();
-                        //orderItem();
 
                     }
-                    
+
                 });
-        });   
+        });
 
 };
 
-// function to handle 
+// function to update products table based on the item_id
 function updateProduct(itemId, numberLeft) {
 
     connection.query(
         "UPDATE products SET ? WHERE ?",
         [
-          {
-            stock_quantity: numberLeft
-          },
-          {
-            item_id: itemId
-          }
+            {
+                stock_quantity: numberLeft
+            },
+            {
+                item_id: itemId
+            }
         ],
-        function(error) {
-          if (error) throw err;
-          console.log("The product table was updated successfully!");
-          displayProducts();
+        function (error) {
+            if (error) throw err;
+            console.log("The product table was updated successfully!");
+            displayProducts();
         }
-      );
+    );
 
 }
 
 
-    // function which prompts the user for what action they should take
-    function start() {
-                inquirer
-                    .prompt({
-                        name: "postOrBid",
-                        type: "input",
-                        message: "What is the project Id would you like to buy?",
-                        validate: function (value) {
-                            if (isNaN(value) === false) {
-                                return true;
-                            }
-                            return false;
-                        }
-                    })
-                    .then(function (answer) {
-                        // based on their answer, either call the bid or the post functions
-                        if (answer.postOrBid === "POST") {
-                            postAuction();
-                        }
-                        else if (answer.postOrBid === "BID") {
-                            bidAuction();
-                        } else {
-                            connection.end();
-                        }
-                    });
-            }
+
 
 
 
