@@ -37,23 +37,21 @@ function displayMenu() {
         .then(function (answer) {
             if (answer.toDo === "View Products for Sale") {
                 displayForManager();
-   
+
             }
             else if (answer.toDo === "View Low Inventory") {
                 viewLowInventory();
-                
-            } 
-            else if(answer.toDo === "Add to Inventory") {
 
             }
-            else if(nswer.toDo === "Add New Product") {
+            else if (answer.toDo === "Add to Inventory") {
+                addToInventory();
+            }
+            else if (nswer.toDo === "Add New Product") {
 
             }
             else {
                 connection.end();
             }
-
-
 
         })
 
@@ -97,5 +95,60 @@ function viewLowInventory() {
         displayMenu();
 
     });
+}
+
+function addToInventory() {
+    inquirer
+        .prompt([
+            {
+                name: "item",
+                type: "input",
+                message: "What is the id of the item you would like to add?"
+            },
+            {
+                name: "number",
+                type: "input",
+                message: "How many items would you like to add?",
+                validate: function (value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        ])
+        .then(function (answer) {
+            console.log(+ answer.number + " items " + answer.item + " are added to the inventory.")
+            connection.query("SELECT * FROM products WHERE ?",
+                [{
+                    item_id: answer.item
+                }],
+                function (err, res) {
+                    if (err) throw err;
+                    var quant = res[0].stock_quantity;
+                    var newQuantity = quant + parseInt(answer.number);
+                    console.log("newQoantity " + newQuantity);
+                    //console.log(type of quant);
+                    // when finished prompting 
+                    connection.query("UPDATE products SET ? WHERE ?",
+                        [   
+                            {
+                                stock_quantity: newQuantity
+                            },
+                            {
+                                item_id: answer.item
+                            }
+                        ]
+                        ,
+                        function (err, results) {
+                            if (err) throw err;
+                            console.log(+ answer.number + " items " + answer.item + " are added to the inventory.")
+                            displayForManager();
+                        }
+                    );
+
+                });
+
+        });
 }
 
