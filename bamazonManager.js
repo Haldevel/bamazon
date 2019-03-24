@@ -19,7 +19,10 @@ var connection = mysql.createConnection({
     database: "bamazon"
 });
 
-displayMenu();
+var departArray = [];
+getDepartments();
+
+//displayMenu();
 
 
 function displayMenu() {
@@ -46,9 +49,9 @@ function displayMenu() {
                 addToInventory();
             }
             else if (answer.toDo === "Add New Product") {
-
+                addNewProduct();
             }
-            else if(answer.toDo === "Quit") {
+            else if (answer.toDo === "Quit") {
                 connection.end();
                 process.exit();
             }
@@ -130,7 +133,7 @@ function addToInventory() {
                     var newQuantity = quant + parseInt(answer.number);
                     //update the corresponding record now
                     connection.query("UPDATE products SET ? WHERE ?",
-                        [   
+                        [
                             {
                                 stock_quantity: newQuantity
                             },
@@ -151,3 +154,80 @@ function addToInventory() {
         });
 }
 
+
+function addNewProduct() {
+    inquirer
+        .prompt([ //get answers from a user manager
+            {
+                name: "product",
+                type: "input",
+                message: "What is the name of the product you would like to add?"
+            },
+            {
+                name: "department",
+                type: "rawlist",
+                choices: departArray,
+                message: "Which department does this product fall into?"
+            },
+            {
+                name: "price",
+                type: "input",
+                message: "How much does it cost?",
+                validate: function (value) {
+                    if (isNaN(parseFloat(value).toFixed(2)) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            },
+            {
+                name: "number",
+                type: "input",
+                message: "How many do we have?",
+                validate: function (value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+
+        ])
+        .then(function (answer) {
+            //select the corresponding item to know how many items of this sort are stored
+            console.log(answer.price + " " + answer.number);
+            connection.query("INSERT INTO products SET ?",
+                {
+
+                    product_name: answer.product,
+                    department_name: answer.department,
+                    price: answer.price,
+                    stock_quantity: answer.number
+                },
+                function (err, res) {
+                    if (err) throw err;
+                    console.log(answer.product + " ADDED TO BAMAZON!")
+                    displayForManager();
+                }
+            );
+
+        });
+
+};
+
+
+function getDepartments() {
+    console.log("1");
+    connection.query("SELECT DISTINCT department_name FROM products", function (err, results) {
+        console.log("1b");
+        if (err) throw err;
+        console.log("2");
+        for (var i = 0; i < results.length; i++) {
+            departArray.push(results[i].department_name);
+        }
+        console.log(departArray);
+        //return departArray;
+        displayMenu();
+
+    });
+};
