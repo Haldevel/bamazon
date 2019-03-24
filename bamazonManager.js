@@ -1,8 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var Table = require('cli-table2');
-/* var customer = require('./bamazonCustomer.js');
-var connection =  require('./bamazonCustomer.js'); */
+
 
 
 // create the connection information for the sql database
@@ -30,7 +29,7 @@ function displayMenu() {
                 name: "toDo",
                 type: "list",
                 message: "What would you like to do?",
-                choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"],
+                choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Quit"],
             }
 
         ])
@@ -46,11 +45,12 @@ function displayMenu() {
             else if (answer.toDo === "Add to Inventory") {
                 addToInventory();
             }
-            else if (nswer.toDo === "Add New Product") {
+            else if (answer.toDo === "Add New Product") {
 
             }
-            else {
+            else if(answer.toDo === "Quit") {
                 connection.end();
+                process.exit();
             }
 
         })
@@ -99,7 +99,7 @@ function viewLowInventory() {
 
 function addToInventory() {
     inquirer
-        .prompt([
+        .prompt([ //get answers from a user manager
             {
                 name: "item",
                 type: "input",
@@ -118,7 +118,7 @@ function addToInventory() {
             }
         ])
         .then(function (answer) {
-            console.log(+ answer.number + " items " + answer.item + " are added to the inventory.")
+            //select the corresponding item to know how many items of this sort are stored
             connection.query("SELECT * FROM products WHERE ?",
                 [{
                     item_id: answer.item
@@ -126,10 +126,9 @@ function addToInventory() {
                 function (err, res) {
                     if (err) throw err;
                     var quant = res[0].stock_quantity;
+                    //the new quantity will be the stored quantity plus the number entered by a manager
                     var newQuantity = quant + parseInt(answer.number);
-                    console.log("newQoantity " + newQuantity);
-                    //console.log(type of quant);
-                    // when finished prompting 
+                    //update the corresponding record now
                     connection.query("UPDATE products SET ? WHERE ?",
                         [   
                             {
@@ -142,7 +141,7 @@ function addToInventory() {
                         ,
                         function (err, results) {
                             if (err) throw err;
-                            console.log(+ answer.number + " items " + answer.item + " are added to the inventory.")
+                            console.log(+ answer.number + " items with id = " + answer.item + " are added to the inventory.")
                             displayForManager();
                         }
                     );
