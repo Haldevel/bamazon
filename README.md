@@ -41,5 +41,17 @@ If **Add New Product** option is selected, the app prompts to enter the name of 
 If the user picks **Quit**, the program exits:
 
 ![Exit](images/Screenshot16.png)
+_________________________________________________________________
+
+Technologies used: 
+  * node.js
+  * mySql db
+  * Packages: 
+    * mysql
+    * inquirer
+    * cli-table2
+_________________________________________________________________
+
+
 
 
