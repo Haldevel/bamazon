@@ -6,37 +6,11 @@ var Table = require('cli-table2');
 // create the connection information for the sql database
 var connection = mysql.createConnection({
     host: "localhost",
-
-    // Your port; if not 3306
     port: 3306,
-
-    // Your username
     user: "root",
-
-    // Your password
     password: "Susie2019",
     database: "bamazon"
 });
-
-/* var stdin = process.stdin;
-stdin.setRawMode(true);
-stdin.resume();
-stdin.setEncoding('utf8');
-stdin.on('data', function(key){
-    console.log(toUnicode(key)); //Gives you the unicode of the pressed key
-    if (key == '\u0003') { process.exit(); }    // ctrl-c
-}); */
-
-/* const readline = require("readline");
-readline.emitKeypressEvents(process.stdin);
-process.stdin.setRawMode(true);
-process.stdin.on('keyup', (str, key) => {
-    if(key.name === "Q" || key.name === "q") {
-        console.log("q was pressed");
-        process.exit();
-    }
-});  */
-
 
 startConnect();
 
@@ -85,9 +59,9 @@ function orderItem() {
                 name: "number",
                 type: "input",
                 message: "How many would you like? [Quit with Q]",
-                when : function( answers ) {
+                when: function (answers) {
                     return answers.item !== "Q";
-                  },
+                },
                 validate: function (value) {
                     if (isNaN(value) === false || value === "Q") {
                         return true;
@@ -98,7 +72,7 @@ function orderItem() {
         ])
         .then(function (answer) {
             // when finished prompting check if the store has enough items to sell       
-            if(answer.item === "Q"|| answer.number === "Q") {
+            if (answer.item === "Q" || answer.number === "Q") {
                 console.log("Exiting the program...");
                 connection.end();
                 process.exit();
@@ -113,38 +87,31 @@ function orderItem() {
                     ,
                     function (err, results) {
                         if (err) throw err;
-                        //if the querying was successfull
-                        //console.log("The info about the item: " + results[0].product_name + " " + results[0].price + " " + results[0].stock_quantity);                
+                        //if the querying was successfull               
                         //check if there are enough items to sell to a customer 
                         var numItems = results[0].stock_quantity;
                         var product = results[0].product_name;
                         var itemNum = parseInt(answer.item);
                         var userNum = parseInt(answer.number);
                         if (userNum <= numItems) {
-                            console.log("Successfully purchased " + answer.number + " " + product + " items");
-                            //connection.end();
+                            //if the quantity is sufficient display the message and update the table
+                            console.log("Successfully purchased " + answer.number + " " + product + " items for the sum of $" + userNum * results[0].price);
                             updateProduct(itemNum, numItems - userNum);
 
                         }
                         else {
+                            //display the message if the quantity is insufficient
                             console.log("Sorry! Insufficient quantity in stock! Please change the order. ");
                             //display the table of items on sale...
                             displayProducts();
-
                         }
-
-
                     });
-
             }
-
-        }
-        )
+        });
 }
 
 // function to update products table based on the item_id
 function updateProduct(itemId, numberLeft) {
-
     connection.query(
         "UPDATE products SET ? WHERE ?",
         [
@@ -157,16 +124,11 @@ function updateProduct(itemId, numberLeft) {
         ],
         function (error) {
             if (error) throw err;
-            console.log("The product table was updated successfully!");
             displayProducts();
         }
     );
-
 }
 
-
-/* module.exports = startConnect();
-module.exports = connection; */
 
 
 
