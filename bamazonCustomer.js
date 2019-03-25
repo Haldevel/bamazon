@@ -79,14 +79,17 @@ function orderItem() {
             {
                 name: "item",
                 type: "input",
-                message: "What is the id of the item you would like to purchase?"
+                message: "What is the id of the item you would like to purchase? [Quit with Q]"
             },
             {
                 name: "number",
                 type: "input",
-                message: "How many would you like?",
+                message: "How many would you like? [Quit with Q]",
+                when : function( answers ) {
+                    return answers.item !== "Q";
+                  },
                 validate: function (value) {
-                    if (isNaN(value) === false) {
+                    if (isNaN(value) === false || value === "Q") {
                         return true;
                     }
                     return false;
@@ -94,40 +97,50 @@ function orderItem() {
             }
         ])
         .then(function (answer) {
-            // when finished prompting check if the store has enough items to sell
-            connection.query("SELECT * FROM products WHERE ?",
-                [
-                    {
-                        item_id: answer.item
-                    }
-                ]
-                ,
-                function (err, results) {
-                    if (err) throw err;
-                    //if the querying was successfull
-                    //console.log("The info about the item: " + results[0].product_name + " " + results[0].price + " " + results[0].stock_quantity);                
-                    //check if there are enough items to sell to a customer 
-                    var numItems = results[0].stock_quantity;
-                    var product = results[0].product_name;
-                    var itemNum = parseInt(answer.item);
-                    var userNum = parseInt(answer.number);
-                    if (userNum <= numItems) {
-                        console.log("Successfully purchased " + answer.number + " " + product + " items");
-                        //connection.end();
-                        updateProduct(itemNum, numItems - userNum);
+            // when finished prompting check if the store has enough items to sell       
+            if(answer.item === "Q"|| answer.number === "Q") {
+                console.log("Exiting the program...");
+                connection.end();
+                process.exit();
+            }
+            else {
+                connection.query("SELECT * FROM products WHERE ?",
+                    [
+                        {
+                            item_id: answer.item
+                        }
+                    ]
+                    ,
+                    function (err, results) {
+                        if (err) throw err;
+                        //if the querying was successfull
+                        //console.log("The info about the item: " + results[0].product_name + " " + results[0].price + " " + results[0].stock_quantity);                
+                        //check if there are enough items to sell to a customer 
+                        var numItems = results[0].stock_quantity;
+                        var product = results[0].product_name;
+                        var itemNum = parseInt(answer.item);
+                        var userNum = parseInt(answer.number);
+                        if (userNum <= numItems) {
+                            console.log("Successfully purchased " + answer.number + " " + product + " items");
+                            //connection.end();
+                            updateProduct(itemNum, numItems - userNum);
 
-                    }
-                    else {
-                        console.log("Sorry! Insufficient quantity in stock! Please change the order. ");
-                        //display the table of items on sale...
-                        displayProducts();
+                        }
+                        else {
+                            console.log("Sorry! Insufficient quantity in stock! Please change the order. ");
+                            //display the table of items on sale...
+                            displayProducts();
 
-                    }
+                        }
 
-                });
-        });
 
-};
+                    });
+
+            }
+
+        }
+        )
+}
 
 // function to update products table based on the item_id
 function updateProduct(itemId, numberLeft) {
