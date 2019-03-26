@@ -95,7 +95,8 @@ function orderItem() {
                         var userNum = parseInt(answer.number);
                         if (userNum <= numItems) {
                             //if the quantity is sufficient display the message and update the table
-                            console.log("Successfully purchased " + answer.number + " " + product + " items for the sum of $" + userNum * results[0].price);
+                            var plural = userNum === 1 ? "item" : "items";
+                            console.log("Successfully purchased " + answer.number + " " + product + " " + plural + " for the sum of $" + userNum * results[0].price);
                             updateProduct(itemNum, numItems - userNum);
 
                         }
